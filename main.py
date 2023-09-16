@@ -5,20 +5,37 @@ import pyautogui
 import sys
 import time
 import threading
+import keyboard
 from win32gui import FindWindow, GetWindowRect, GetClassName
 
 window_handle = FindWindow("SunAwtFrame", None)
 # GetClassName of a client
 # class_name = GetClassName(window_handle)
 
+is_running = True
+start_time = time.time()
+
+def stop():
+    global is_running
+    is_running = False
+    end_time = time.time()
+
+    seconds = end_time - start_time
+    minutes = seconds // 60
+    hours = minutes // 60
+
+    print("\n" + "Terminating the program. Total run time: " + "%02d:%02d:%02d" % (hours, minutes % 60, seconds % 60))
+
+keyboard.add_hotkey("s", stop)
+
 def mouse_and_app_coords():
     old_pos, new_pos = "", ""
     old_window_rect_pos = ""
     x0, y0, x1, y1 = "", "", "", ""
 
-    while 1:
-        # Difference between old_pos and new_pos signifies cursor/client window movement
-        # Cursor
+    while not is_running == False:
+        # Difference between old_pos and new_pos indicates mouse/client window movement
+        # Mouse
         new_pos = pyautogui.position()
 
         if old_pos != new_pos:
@@ -37,16 +54,15 @@ def mouse_and_app_coords():
         old_window_rect_pos = x0, y0, x1, y1
 
 
-# New thread due to while loop blocking the main thread
+# Separate thread due to while loop blocking the main thread
 mouse_and_app_coords = threading.Thread(target=mouse_and_app_coords)
 mouse_and_app_coords.start()
 
 def spell_casting():
     x0, y0, x1, y1 = GetWindowRect(window_handle)
     x, y = "", ""
-    i = 0
 
-    while i < 2:
+    while not is_running == False:
         if x != x1 - 55 and y != y0 + 335:
             # Spell book
             pyautogui.moveTo(x1 - 25, y0 + 205, 1)
@@ -67,8 +83,6 @@ def spell_casting():
             # Inventory item
             pyautogui.click()
             time.sleep(2.5)
-
-        i += 1
 
 
 spell_casting()
